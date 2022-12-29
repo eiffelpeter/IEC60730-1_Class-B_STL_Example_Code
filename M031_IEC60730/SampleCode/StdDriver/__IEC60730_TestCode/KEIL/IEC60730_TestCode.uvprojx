@@ -134,10 +134,10 @@
             <RunIndependent>0</RunIndependent>
             <UpdateFlashBeforeDebugging>1</UpdateFlashBeforeDebugging>
             <Capability>1</Capability>
-            <DriverSelection>4096</DriverSelection>
+            <DriverSelection>4106</DriverSelection>
           </Flash1>
           <bUseTDR>1</bUseTDR>
-          <Flash2>BIN\Nu_Link.dll</Flash2>
+          <Flash2>Bin\Nu_Link.dll</Flash2>
           <Flash3>"NuLink -w APROM C:\_code\nuvoton\IEC60730-1_Class-B_STL_Example_Code\M031_IEC60730\SampleCode\StdDriver\__IEC60730_TestCode\KEIL\OBJ\IEC60730_CLASSB_TEST.BIN" ()</Flash3>
           <Flash4></Flash4>
           <pFcarmOut></pFcarmOut>
