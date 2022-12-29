@@ -7,11 +7,21 @@
  * @copyright (C) 2018 Nuvoton Technology Corp. All rights reserved.
  ******************************************************************************/
 #include <stdio.h>
+#include <string.h>
 #include "NuMicro.h"
 
 static uint32_t volatile systick = 1;
 static uint32_t volatile ledtick = 0;
 static uint8_t volatile ledmode = 2;
+
+static int test_api(void)
+{
+    static int i = 0;
+
+    i++;
+
+    return i;
+}
 
 void TMR0_IRQHandler(void)
 {
@@ -71,7 +81,8 @@ void GPCDEF_IRQHandler(void)
     volatile uint32_t temp;
     static uint32_t count = 0;
     static uint32_t pretick;
-    uint8_t buf[0x348]; 
+    //uint8_t buf[0x348];
+    uint8_t buf[0x100];
 
     
     
@@ -79,12 +90,14 @@ void GPCDEF_IRQHandler(void)
     /* To check if PC.0 interrupt occurred */
     if(GPIO_GET_INT_FLAG(PC, BIT0))
     {
-        ledmode = ++ledmode % 3; 
-        printf("PC.0 INT occurred %d (%d ms) \n", ++count, systick - pretick);
+        ledmode = (++ledmode) % 3; 
+
+        count = test_api();
+        printf("PC.0 INT occurred %d (%d ms) \n", count, systick - pretick);
         //printf("switch led mode %d\n", ledmode);
         pretick = systick;
         GPIO_CLR_INT_FLAG(PC, BIT0);
-        
+
         //M32(0) = 0; // trig hard hard fault
         
         memset(buf, 0x0, sizeof(buf));
@@ -153,6 +166,53 @@ void UART0_Init(void)
     UART_Open(UART0, 115200);
 }
 
+static int test_api_4(void)
+{
+    uint8_t buf[0x100];
+
+    memset(buf, 0x0, sizeof(buf));
+    memset(buf, 0x55, sizeof(buf));
+    memset(buf, 0xAA, sizeof(buf));
+
+    return 0;
+}
+
+static int test_api_3(void)
+{
+    uint8_t buf[0x100];
+
+    memset(buf, 0x00, sizeof(buf));
+    memset(buf, 0x55, sizeof(buf));
+    memset(buf, 0xAA, sizeof(buf));
+
+    test_api_4();
+    return 0;
+}
+
+static int test_api_2(void)
+{
+    uint8_t buf[0x100];
+
+    memset(buf, 0x00, sizeof(buf));
+    memset(buf, 0x55, sizeof(buf));
+    memset(buf, 0xAA, sizeof(buf));
+
+    //test_api_3();
+    return 0;
+}
+
+static int test_api_1(void)
+{
+    uint8_t buf[0x100];
+
+    memset(buf, 0x00, sizeof(buf));
+    memset(buf, 0x55, sizeof(buf));
+    memset(buf, 0xAA, sizeof(buf));
+    
+    test_api_2();
+    return 0;
+}
+
 int main(void)
 {
     /* Init System, IP clock and multi-function I/O. */
@@ -205,6 +265,7 @@ int main(void)
     /* Waiting for interrupts */
     while (1)
     {
+        test_api_1();
         if ( (systick - ledtick) >= 1000 )
         {           
             ledtick = systick;
