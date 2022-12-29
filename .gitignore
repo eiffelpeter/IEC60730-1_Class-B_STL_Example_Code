@@ -4,8 +4,8 @@ lst/
 RTE/
 *.uvguix.*
 *.uvgui.*
-*.uvoptx
 
 
+*.ini
 *.bak
 *.vtg
