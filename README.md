@@ -20,3 +20,6 @@
 
 ## Open IEC60730_TestCode.uvprojx in keil, build and download
 <img src="./doc/build_and_download.png">
+
+## log
+<img src="./doc/printf.png">
