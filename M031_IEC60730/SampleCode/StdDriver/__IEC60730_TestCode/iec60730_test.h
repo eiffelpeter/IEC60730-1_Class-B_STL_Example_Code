@@ -69,7 +69,7 @@ extern const uint32_t __Check_Sum;
 #define ROM_LENGTH  			((uint32_t)ROM_END - (uint32_t)ROM_START)
 
 /* CRC checsum compare */
-//#define CRC_COMAPRE_WITH_HW
+#define CRC_COMAPRE_WITH_HW // peter
 #ifndef CRC_COMAPRE_WITH_HW
 #define CRC_COMAPRE_WITH_SW
 #endif

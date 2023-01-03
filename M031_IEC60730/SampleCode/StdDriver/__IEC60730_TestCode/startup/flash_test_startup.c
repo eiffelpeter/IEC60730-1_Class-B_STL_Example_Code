@@ -229,8 +229,8 @@ uint32_t IEC60730_Flash_Test(uint32_t* ROMTestPass)
     CRC->CTL = 0;
     CRC->CTL = CRC_CTL_CRCEN_Msk;
     CRC->CTL |= CRC_32;
-    CRC->CTL |= CRC_CPU_WDATA_32;
-    CRC_Open(CRC_32, 0, 0xFFFFFFFF, CRC_CPU_WDATA_32);
+    CRC->CTL |= CRC_WDATA_32;
+    CRC_Open(CRC_32, 0, 0xFFFFFFFF, CRC_WDATA_32);
 	
     /* start to execute CRC-CRC32 operation */
 	u32EndAddr = u32StartAddr + u32Length;		
@@ -241,7 +241,7 @@ uint32_t IEC60730_Flash_Test(uint32_t* ROMTestPass)
     u32HWCRC32 = CRC_GetChecksum();
     if(u32HWCRC32 != __Check_Sum)
     {
-        printf("ROM test fail4 0x%x 0x%x\n\r", s_u32SWCRC, __Check_Sum);
+        printf("ROM test fail4 0x%x 0x%x\n\r", u32HWCRC32, __Check_Sum);
             *ROMTestPass = FAIL;
     }
     else

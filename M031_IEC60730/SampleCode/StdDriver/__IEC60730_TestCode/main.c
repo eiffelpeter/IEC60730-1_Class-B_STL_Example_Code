@@ -280,6 +280,21 @@ int32_t main(void)
 		while(1);
 	}
 
+    /* Flash Test */
+    /* After building test code, CRC32 checksum value must be given to 
+	"__Check_Sum" symbol which is defined in startup_M031Series.s, and then 
+	rebuild code again */
+#ifndef OPT_ACCESS_TIME_CHECK		
+    printf("Flash Test ...");
+    IEC60730_Flash_Test((uint32_t*)&ROMTestPass);
+    if(ROMTestPass)
+		printf("Pass !!\n");
+    else {
+		printf("Fail !!\n");
+		while(1);
+	}
+#endif
+
     /* RAM Test (MarchC) */
 #ifdef RAM_STARTUP_MARCHC_WOM	
 	RAMStartAddr = (uint32_t)&Image$$RW_IRAM1$$Base;
@@ -306,20 +321,6 @@ int32_t main(void)
 	}
 #endif
 
-    /* Flash Test */
-    /* After building test code, CRC32 checksum value must be given to 
-	"__Check_Sum" symbol which is defined in startup_M031Series.s, and then 
-	rebuild code again */
-//#ifndef OPT_ACCESS_TIME_CHECK		
-//    printf("Flash Test ...");
-//    IEC60730_Flash_Test((uint32_t*)&ROMTestPass);
-//    if(ROMTestPass)
-//		printf("Pass !!\n");
-//    else {
-//		printf("Fail !!\n");
-//		while(1);
-//	}
-//#endif
 
   /* Run Time Test initial */
 	IEC60730_DoRunTimeIntial();

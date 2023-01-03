@@ -42,8 +42,8 @@ void IEC60730_Flash_Test_RunTime_Init(void)
 	CRC->CTL = 0;
 	CRC->CTL = CRC_CTL_CRCEN_Msk;
 	CRC->CTL |= CRC_32;
-	CRC->CTL |= CRC_CPU_WDATA_32;
-	CRC_Open(CRC_32, 0, 0xFFFFFFFF, CRC_CPU_WDATA_32);
+	CRC->CTL |= CRC_WDATA_32;
+	CRC_Open(CRC_32, 0, 0xFFFFFFFF, CRC_WDATA_32);
 #endif
 	
 	/* init SW CRC32 seed */
@@ -54,7 +54,7 @@ void IEC60730_Flash_Test_RunTime_Init(void)
 
 uint32_t IEC60730_Flash_Test_RunTime(uint32_t* ROMTestPass)
 {
-	uint32_t u32Length = ROM_RUNTIME_TEST_LENGTH;
+	uint32_t u32Length = ROM_LENGTH; // peter ROM_RUNTIME_TEST_LENGTH;
     uint32_t u32StartAddr;
 #ifdef CRC_COMAPRE_WITH_HW
     uint32_t ii, u32EndAddr;
@@ -134,8 +134,8 @@ uint32_t IEC60730_Flash_Test_RunTime(uint32_t* ROMTestPass)
 	if (!(u32RunTimeInit & RUNTIME_FLASH_INTIT)) {		
 		if(s_u32HWCRC != __Check_Sum)
         {
-            printf("ROM test fail2 0x%x 0x%x\n\r", s_u32SWCRC, __Check_Sum);
-                *ROMTestPass = FAIL;
+            printf("ROM test fail2 expect:0x%08x, but __Check_Sum:0x%08x\n\r", s_u32HWCRC, __Check_Sum);
+            *ROMTestPass = FAIL;
         }
 		else
 			*ROMTestPass = PASS;
