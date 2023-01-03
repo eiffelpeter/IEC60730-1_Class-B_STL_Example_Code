@@ -10,6 +10,55 @@
 #include "stdio.h"
 #include "NuMicro.h"
 
+static uint32_t volatile systick = 1;
+static uint32_t volatile ledtick = 0;
+static uint8_t volatile ledmode = 2;
+
+void TMR0_IRQHandler(void)
+{
+    if(TIMER_GetIntFlag(TIMER0) == 1)
+    {
+      systick++;
+      //printf("%d sec\n", sec++);
+
+      /* clear timer interrupt flag */
+      TIMER_ClearIntFlag(TIMER0);
+    }
+}
+
+/**
+ * @brief       GPIO PC/PD/PE/PF IRQ
+ * @param       None
+ * @return      None
+ * @details     The PC/PD/PE/PF default IRQ, declared in startup_M031Series.s.
+ */
+void GPCDEF_IRQHandler(void)
+{
+    volatile uint32_t temp;
+    static uint32_t count = 0;
+    static uint32_t pretick;  
+    
+    /* To check if PC.0 interrupt occurred */
+    if(GPIO_GET_INT_FLAG(PC, BIT0))
+    {
+        ledmode = (++ledmode) % 3; 
+
+        printf("PC.0 INT occurred %d (%d ms) \n", ++count, systick - pretick);
+        //printf("switch led mode %d\n", ledmode);
+        pretick = systick;
+        GPIO_CLR_INT_FLAG(PC, BIT0);
+
+        //M32(0) = 0; // trig hard hard fault
+
+    }
+    else
+    {
+        /* Un-expected interrupt. Just clear all PC interrupts */
+        temp = PC->INTSRC;
+        PC->INTSRC = temp;
+        printf("Un-expected interrupts.\n");
+    }
+}
 /*---------------------------------------------------------------------------------------------------------*/
 /*  Clock Fail Detector IRQ Handler                                                                        */
 /*---------------------------------------------------------------------------------------------------------*/
@@ -102,6 +151,12 @@ void SYS_Init(void)
     /* Switch UART0 clock source to HIRC */
     CLK_SetModuleClock(UART0_MODULE, CLK_CLKSEL1_UART0SEL_HIRC, CLK_CLKDIV0_UART0(1));
 
+   /* Enable IP clock */
+    CLK_EnableModuleClock(TMR0_MODULE);
+
+    /* Select IP clock source */
+    CLK_SetModuleClock(TMR0_MODULE, CLK_CLKSEL1_TMR0SEL_HIRC, 0);
+
     /* Update System Core Clock */
     /* User can use SystemCoreClockUpdate() to calculate PllClock, SystemCoreClock and CycylesPerUs automatically. */
     SystemCoreClockUpdate();
@@ -142,6 +197,15 @@ int32_t main(void)
     /* Init UART0 for printf */
     UART0_Init();
 
+    /* Set timer frequency to 1000HZ */
+    TIMER_Open(TIMER0, TIMER_PERIODIC_MODE, 1000);
+
+    /* Enable timer interrupt */
+    TIMER_EnableInt(TIMER0);
+    NVIC_EnableIRQ(TMR0_IRQn);
+
+    /* Start Timer 0 */
+    TIMER_Start(TIMER0);
 
     printf("\n\nCPU @ %d Hz\n", SystemCoreClock);
     printf("+-------------------------------------------------------------+\n");
@@ -183,6 +247,47 @@ int32_t main(void)
     /* Enable clock fail detector interrupt */
     NVIC_EnableIRQ(CKFAIL_IRQn);
 
+
+    GPIO_SetMode(PB, BIT14, GPIO_MODE_OUTPUT);
+    /*-----------------------------------------------------------------------------------------------------*/
+    /* GPIO Interrupt Function Test                                                                        */
+    /*-----------------------------------------------------------------------------------------------------*/
+    printf("    PC.0 is falling edge trigger.\n");
+
+
+    /* Configure PC.1 as Quasi-bidirection mode and enable interrupt by falling edge trigger */
+    GPIO_SetMode(PC, BIT0, GPIO_MODE_QUASI);
+    GPIO_EnableInt(PC, 0, GPIO_INT_FALLING);
+    NVIC_EnableIRQ(GPIO_PCPDPEPF_IRQn);
+
+    /* Enable interrupt de-bounce function and select de-bounce sampling cycle time is 1024 clocks of LIRC clock */
+    GPIO_SET_DEBOUNCE_TIME(GPIO_DBCTL_DBCLKSRC_LIRC, GPIO_DBCTL_DBCLKSEL_1024);
+    //GPIO_ENABLE_DEBOUNCE(PB, BIT2);
+    GPIO_ENABLE_DEBOUNCE(PC, BIT0);
+
+    PB14 = 0;
+
     /* Wait for clock fail detector interrupt happened */
-    while(1);
+    while(1)
+    {
+        if ( (systick - ledtick) >= 1000 )
+        {           
+            ledtick = systick;
+            
+            switch(ledmode)
+            {
+            case 0:
+                PB14 = 1;   // off
+                break;
+            case 1:
+                PB14 = 0;   // on
+                break;
+            case 2:
+                PB14 = !PB14;   // toggle
+                break;
+            }
+            
+            //printf("1s \n");            
+        }	
+    }
 }
